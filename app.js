@@ -53,6 +53,27 @@ function toast(msg){const el=document.getElementById("toast");el.textContent=msg
 function showPage(name){document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id===`page-${name}`));document.querySelectorAll(".nav-item[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===name));window.scrollTo({top:0,behavior:"smooth"});render()}
 function txRow(t){const sign=t.type==="income"?"+":"−";return `<div class="transaction-row"><div class="tx-icon">${icons[t.category]||"✦"}</div><div class="tx-info"><strong>${escapeHTML(t.category)}</strong><small>${escapeHTML(t.note||"Không có ghi chú")} · ${new Date(t.date+"T12:00:00").toLocaleDateString("vi-VN")}</small></div><div class="tx-right"><div class="tx-amount ${t.type}">${sign}${money(t.amount)}</div><div class="tx-actions"><button class="mini-btn" data-edit="${escapeHTML(t.id)}">Sửa</button><button class="mini-btn" data-delete="${escapeHTML(t.id)}">Xóa</button></div></div></div>`}
 function bars(targetId,data){const el=document.getElementById(targetId);if(!el)return;const max=Math.max(1,...data.flatMap(d=>[d.income,d.expense]));el.innerHTML=data.map(d=>`<div class="bar-group"><div class="bar income" style="height:${Math.max(2,d.income/max*100)}%"></div><div class="bar expense" style="height:${Math.max(2,d.expense/max*100)}%"></div><span class="bar-label">${escapeHTML(d.label)}</span></div>`).join("")}
+function selectedReportMonth(){return document.getElementById("reportMonth")?.value||currentMonth()}
+function renderReport(){
+ const key=selectedReportMonth(), list=state.transactions.filter(t=>monthKey(t.date)===key);
+ const income=sum(list,"income"), expense=sum(list,"expense"), net=income-expense;
+ const set=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value};
+ set("reportIncome",money(income));set("reportExpense",money(expense));set("reportNet",money(net));
+ set("reportIncomeCount",list.filter(t=>t.type==="income").length+" giao dịch thu");set("reportExpenseCount",list.filter(t=>t.type==="expense").length+" giao dịch chi");
+ const netEl=document.getElementById("reportNet");if(netEl)netEl.className=net<0?"red":"green";
+ const grouped={};for(const t of list){if(!grouped[t.date])grouped[t.date]={income:0,expense:0};grouped[t.date][t.type]+=t.amount}
+ const rows=Object.entries(grouped).sort((a,b)=>b[0].localeCompare(a[0])).map(([date,v])=>{const d=new Date(date+"T12:00:00").toLocaleDateString("vi-VN");const n=v.income-v.expense;return "<tr><td>"+d+"</td><td class=\"green\">"+money(v.income)+"</td><td class=\"red\">"+money(v.expense)+"</td><td class=\""+(n<0?"red":"green")+"\">"+money(n)+"</td></tr>"}).join("");
+ const tbody=document.getElementById("reportDailyRows");if(tbody)tbody.innerHTML=rows;
+ const empty=document.getElementById("reportEmpty");if(empty)empty.classList.toggle("hidden",list.length>0);
+}
+function exportReportCSV(){
+ const key=selectedReportMonth(), list=state.transactions.filter(t=>monthKey(t.date)===key).sort((a,b)=>a.date.localeCompare(b.date));
+ const rows=[["Báo cáo tháng",key],[],["Ngày","Loại","Danh mục","Số tiền (VND)","Ghi chú"],...list.map(t=>[t.date,t.type==="income"?"Thu":"Chi",t.category,t.amount,t.note||""]),[],["Tổng thu",sum(list,"income")],["Tổng chi",sum(list,"expense")],["Dòng tiền ròng",sum(list,"income")-sum(list,"expense")]];
+ const safe=v=>{let s=String(v??"");if(/^[=+\\-@]/.test(s))s="'"+s;return """+s.replace(/"/g,"""")+"""};
+ const csv="﻿"+rows.map(r=>r.map(safe).join(",")).join("
+");
+ downloadBlob(new Blob([csv],{type:"text/csv;charset=utf-8"}),"bao-cao-"+key+".csv");toast("Đã xuất báo cáo tháng "+key);
+}
 function render(){
  const m=monthTransactions(), income=sum(m,"income"), expense=sum(m,"expense");
  const balance=state.transactions.reduce((a,t)=>a+(t.type==="income"?1:-1)*Number(t.amount),0);
@@ -107,5 +128,9 @@ function backupJSON(){const payload={app:"QuanLyChiTieu",version:2,exportedAt:ne
 async function restoreJSON(file){try{if(file.size>5*1024*1024)throw new Error("Tệp lớn hơn giới hạn 5 MB.");const raw=JSON.parse(await file.text());const candidate=normalizeState(raw.data||raw);if(!confirm(`Khôi phục ${candidate.transactions.length} giao dịch và ${candidate.goals.length} mục tiêu? Dữ liệu hiện tại sẽ được thay thế.`))return;state=candidate;localStorage.setItem(STORAGE_KEY,JSON.stringify(state));render();toast("Đã khôi phục dữ liệu thành công")}catch(e){toast(e.message||"Không thể đọc tệp sao lưu.")}finally{document.getElementById("restoreFile").value=""}}
 document.getElementById("exportBtn").addEventListener("click",exportCSV);document.getElementById("backupJson").addEventListener("click",backupJSON);document.getElementById("restoreJson").addEventListener("click",()=>document.getElementById("restoreFile").click());document.getElementById("restoreFile").addEventListener("change",e=>{if(e.target.files[0])restoreJSON(e.target.files[0])});
 document.getElementById("todayLabel").textContent=new Intl.DateTimeFormat("vi-VN",{weekday:"long",day:"numeric",month:"long"}).format(new Date()).toUpperCase();
+const reportMonthInput=document.getElementById("reportMonth");
+if(reportMonthInput){reportMonthInput.value=currentMonth();reportMonthInput.addEventListener("change",renderReport)}
+document.getElementById("exportReportBtn")?.addEventListener("click",exportReportCSV);
+renderReport();
 render();
 if("serviceWorker" in navigator&&location.protocol!=="file:"){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}))}
