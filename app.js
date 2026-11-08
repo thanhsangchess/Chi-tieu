@@ -56,7 +56,7 @@ function bars(targetId,data){const el=document.getElementById(targetId);if(!el)r
 function selectedReportMonth(){return document.getElementById("reportMonth")?.value||currentMonth()}
 function renderReport(){
  const key=selectedReportMonth();
- if(!/^\\d{4}-\\d{2}$/.test(key))return;
+ if(!/^\d{4}-\d{2}$/.test(key))return;
  const list=state.transactions.filter(t=>monthKey(t.date)===key);
  const income=sum(list,"income"),expense=sum(list,"expense"),net=income-expense;
  const date=new Date(key+"-01T12:00:00");
@@ -108,7 +108,7 @@ function exportReportCSV(){
  const list=state.transactions.filter(t=>monthKey(t.date)===key).sort((a,b)=>a.date.localeCompare(b.date));
  const rows=[["Báo cáo tháng",key],[],["Ngày","Loại","Danh mục","Số tiền (VND)","Ghi chú"],...list.map(t=>[t.date,t.type==="income"?"Thu":"Chi",t.category,t.amount,t.note||""]),[],["Tổng thu",sum(list,"income")],["Tổng chi",sum(list,"expense")],["Dòng tiền ròng",sum(list,"income")-sum(list,"expense")]];
  const safe=v=>{let s=String(v??"");if(/^[=+\\-@]/.test(s))s="'"+s;return "\"" + s.replace(/"/g,'""') + "\""};
- const csv="\\uFEFF"+rows.map(row=>row.map(safe).join(",")).join("\\r\\n");
+ const csv="\uFEFF"+rows.map(row=>row.map(safe).join(",")).join("\r\n");
  downloadBlob(new Blob([csv],{type:"text/csv;charset=utf-8"}),"bao-cao-"+key+".csv");
  toast("Đã xuất báo cáo tháng "+key);
 }
