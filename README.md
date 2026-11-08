@@ -1,4 +1,4 @@
-# Quản lý chi tiêu — Phiên bản 3.0 Premium Reports
+# Quản lý chi tiêu — Phiên bản 3.1 Premium Finance
 
 Ứng dụng web quản lý thu chi cá nhân, thiết kế mobile-first, lưu cục bộ và hỗ trợ PWA/offline.
 
@@ -56,8 +56,10 @@
 
 
 ## Phiên bản 3.0 Premium Reports
-- Làm mới khu vực thống kê theo phong cách premium dashboard.
-- Chọn tháng lịch sử để xem KPI và bảng thu/chi/ròng theo ngày.
+- Thiết kế lại màn hình thống kê theo phong cách Premium Finance: phân cấp nội dung, thẻ KPI rõ ràng và tối ưu màn hình điện thoại.
+- Chọn tháng lịch sử để xem KPI, so sánh với tháng trước và bảng thu/chi/ròng theo ngày.
+- Biểu đồ dòng tiền được nhóm theo tuần trong tháng đang chọn.
+- Cải thiện bố cục lọc kỳ báo cáo, màu sắc trạng thái và bảng dữ liệu responsive.
 - Xuất báo cáo CSV theo tháng đã chọn.
 - Giữ nguyên dữ liệu localStorage và các chức năng thu chi, ngân sách, tiết kiệm, sao lưu/khôi phục.
 - Cập nhật cache Service Worker để trình duyệt nhận bản giao diện mới.
