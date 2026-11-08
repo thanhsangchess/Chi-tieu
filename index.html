@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#635bff">
+  <meta name="description" content="Ứng dụng quản lý chi tiêu cá nhân, hoạt động ngoại tuyến.">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <title>Quản lý chi tiêu</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">₫</div>
+        <div><strong>Quản lý chi tiêu</strong><small>Kiểm soát dòng tiền của bạn</small></div>
+      </div>
+      <button class="icon-btn" id="exportBtn" aria-label="Xuất dữ liệu" title="Xuất CSV">⇩</button>
+    </header>
+
+    <main>
+      <section class="page active" id="page-home">
+        <div class="greeting-row">
+          <div><p class="eyebrow" id="todayLabel">TỔNG QUAN</p><h1>Tài chính của bạn</h1></div>
+          <span class="month-chip" id="monthLabel"></span>
+        </div>
+        <article class="balance-card">
+          <div class="balance-head"><span>Tổng số dư</span><span class="live-dot">● Dữ liệu trên thiết bị</span></div>
+          <div class="balance" id="balanceValue">0 ₫</div>
+          <div class="balance-grid">
+            <div><span class="metric-label"><i class="dot income-dot"></i> Tổng thu tháng này</span><strong id="incomeValue">0 ₫</strong></div>
+            <div><span class="metric-label"><i class="dot expense-dot"></i> Tổng chi tháng này</span><strong id="expenseValue">0 ₫</strong></div>
+          </div>
+          <div class="balance-foot"><span>Còn lại trong tháng</span><strong id="remainingValue">0 ₫</strong></div>
+        </article>
+
+        <div class="section-heading"><div><p class="eyebrow">TỔNG QUAN</p><h2>Dòng tiền tháng này</h2></div><button class="text-btn" data-go="statistics">Chi tiết →</button></div>
+        <article class="panel chart-panel">
+          <div class="chart-legend"><span><i class="dot income-dot"></i> Thu nhập</span><span><i class="dot expense-dot"></i> Chi tiêu</span></div>
+          <div class="bar-chart" id="homeChart" aria-label="Biểu đồ thu chi"></div>
+        </article>
+
+        <div class="section-heading"><div><p class="eyebrow">MỚI NHẤT</p><h2>Giao dịch gần đây</h2></div><button class="text-btn" data-go="transactions">Xem tất cả →</button></div>
+        <div class="transaction-list panel" id="recentTransactions"></div>
+        <div class="empty-hint hidden" id="homeEmpty">Chưa có giao dịch. Hãy thêm khoản thu hoặc chi đầu tiên nhé.</div>
+      </section>
+
+      <section class="page" id="page-transactions">
+        <div class="page-title-row"><div><p class="eyebrow">SỔ THU CHI</p><h1>Giao dịch</h1></div><button class="primary-btn compact" id="addTransactionTop">＋ Thêm</button></div>
+        <div class="search-box"><span>⌕</span><input id="transactionSearch" type="search" placeholder="Tìm giao dịch, ghi chú, danh mục..."></div>
+        <div class="filter-row">
+          <button class="filter active" data-filter="all">Tất cả</button>
+          <button class="filter" data-filter="expense">Khoản chi</button>
+          <button class="filter" data-filter="income">Khoản thu</button>
+        </div>
+        <div class="date-filters">
+          <label>Từ ngày<input id="filterFrom" type="date"></label>
+          <label>Đến ngày<input id="filterTo" type="date"></label>
+          <button class="text-btn" id="clearFilters">Xóa lọc</button>
+        </div>
+        <div class="panel transaction-list" id="allTransactions"></div>
+        <div class="empty-hint hidden" id="transactionsEmpty">Chưa có giao dịch phù hợp.</div>
+      </section>
+
+      <section class="page" id="page-statistics">
+        <div class="page-title-row"><div><p class="eyebrow">PHÂN TÍCH</p><h1>Thống kê</h1></div><span class="month-chip" id="statsMonth"></span></div>
+        <div class="stat-cards">
+          <article class="panel stat-card"><span>Thu nhập</span><strong class="green" id="statsIncome">0 ₫</strong></article>
+          <article class="panel stat-card"><span>Chi tiêu</span><strong class="red" id="statsExpense">0 ₫</strong></article>
+        </div>
+        <article class="panel stats-panel comparison-panel"><h3>So sánh với tháng trước</h3><div class="comparison-grid"><div><span>Thu nhập</span><strong id="incomeChange">—</strong></div><div><span>Chi tiêu</span><strong id="expenseChange">—</strong></div></div><p class="small-note">Tỷ lệ thay đổi được tính trên tổng thu và chi của tháng liền trước.</p></article>
+        <article class="panel stats-panel"><h3>Chi tiêu theo danh mục</h3><div id="categoryStats" class="category-stats"></div></article>
+        <article class="panel stats-panel"><h3>Thu và chi theo ngày</h3><div id="statsChart" class="bar-chart tall"></div></article>
+      </section>
+
+      <section class="page" id="page-budget">
+        <div class="page-title-row"><div><p class="eyebrow">KIỂM SOÁT CHI TIÊU</p><h1>Ngân sách</h1></div></div>
+        <article class="budget-summary panel"><span>Ngân sách tháng</span><strong id="budgetTotal">Chưa thiết lập</strong><p id="budgetSummaryText">Đặt giới hạn để theo dõi chi tiêu.</p></article>
+        <form class="panel budget-form" id="budgetForm">
+          <label for="budgetAmount">Ngân sách tổng tháng (VNĐ)</label>
+          <div class="input-with-action"><input id="budgetAmount" type="number" min="0" step="1000" placeholder="Ví dụ: 5000000"><button class="primary-btn" type="submit">Lưu</button></div>
+        </form>
+        <article class="panel stats-panel"><h3>Tiến độ ngân sách tổng</h3><div id="budgetProgress"></div></article>
+        <article class="panel stats-panel">
+          <div class="section-heading inner-heading"><div><h3>Ngân sách theo danh mục</h3><p class="small-note">Đặt hạn mức riêng cho từng khoản chi.</p></div></div>
+          <form id="categoryBudgetForm" class="category-budget-form">
+            <label for="budgetCategory">Danh mục</label><select id="budgetCategory"></select>
+            <label for="categoryBudgetAmount">Hạn mức tháng (VNĐ)</label>
+            <div class="input-with-action"><input id="categoryBudgetAmount" type="number" min="0" step="1000" placeholder="Ví dụ: 1000000"><button class="primary-btn" type="submit">Lưu</button></div>
+          </form>
+          <div id="categoryBudgetList"></div>
+        </article>
+        <p class="small-note">Ngân sách danh mục được tính theo tháng hiện tại. Hạn mức bằng 0 sẽ xóa thiết lập cho danh mục đó.</p>
+      </section>
+
+      <section class="page" id="page-savings">
+        <div class="page-title-row"><div><p class="eyebrow">KẾ HOẠCH TƯƠNG LAI</p><h1>Mục tiêu tiết kiệm</h1></div></div>
+        <form class="panel savings-form" id="savingsForm">
+          <h3>Tạo mục tiêu mới</h3>
+          <label for="goalName">Tên mục tiêu</label><input id="goalName" required maxlength="50" placeholder="Ví dụ: Mua laptop">
+          <label for="goalTarget">Số tiền muốn đạt (VNĐ)</label><input id="goalTarget" required type="number" min="1" step="1000" placeholder="15000000">
+          <button class="primary-btn full" type="submit">＋ Tạo mục tiêu</button>
+        </form>
+        <div id="savingsList" class="savings-list"></div>
+        <div class="empty-hint hidden" id="savingsEmpty">Bạn chưa có mục tiêu tiết kiệm nào.</div>
+        <article class="panel data-tools">
+          <h3>Sao lưu và khôi phục dữ liệu</h3>
+          <p class="small-note">Tạo bản sao lưu đầy đủ gồm giao dịch, ngân sách và mục tiêu tiết kiệm. Tệp JSON có thể dùng để khôi phục trên trình duyệt khác.</p>
+          <div class="data-tool-actions"><button class="secondary-btn" id="backupJson">⇩ Sao lưu JSON</button><button class="secondary-btn" id="restoreJson">⇧ Khôi phục JSON</button></div>
+          <input type="file" id="restoreFile" accept=".json,application/json" hidden>
+        </article>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="Điều hướng chính">
+      <button class="nav-item active" data-page="home"><span>⌂</span><small>Tổng quan</small></button>
+      <button class="nav-item" data-page="transactions"><span>⇄</span><small>Giao dịch</small></button>
+      <button class="nav-item add-nav" id="quickAdd" aria-label="Thêm giao dịch"><span>＋</span><small>Thêm</small></button>
+      <button class="nav-item" data-page="statistics"><span>◔</span><small>Thống kê</small></button>
+      <button class="nav-item" data-page="budget"><span>▤</span><small>Ngân sách</small></button>
+    </nav>
+  </div>
+
+  <dialog id="transactionDialog" class="modal">
+    <form id="transactionForm" class="modal-content">
+      <div class="modal-head"><div><p class="eyebrow">GHI CHÉP NHANH</p><h2 id="dialogTitle">Thêm giao dịch</h2></div><button type="button" class="close-btn" id="closeDialog">×</button></div>
+      <input type="hidden" id="transactionId">
+      <div class="type-switch"><button type="button" class="type-btn active expense" data-type="expense">Khoản chi</button><button type="button" class="type-btn income" data-type="income">Khoản thu</button></div>
+      <label for="amount">Số tiền (VNĐ)</label><input id="amount" class="amount-input" required type="number" min="1" step="1000" placeholder="0">
+      <label for="category">Danh mục</label><select id="category" required></select>
+      <label for="date">Ngày giao dịch</label><input id="date" required type="date">
+      <label for="note">Ghi chú <span class="optional">(không bắt buộc)</span></label><input id="note" maxlength="100" placeholder="Ví dụ: Ăn trưa cùng bạn">
+      <div class="modal-actions"><button type="button" class="secondary-btn" id="cancelDialog">Hủy</button><button type="submit" class="primary-btn">Lưu giao dịch</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="contributeDialog" class="modal">
+    <form id="contributeForm" class="modal-content">
+      <div class="modal-head"><div><p class="eyebrow">MỤC TIÊU TIẾT KIỆM</p><h2>Thêm khoản tiết kiệm</h2></div><button type="button" class="close-btn" id="closeContribute">×</button></div>
+      <input type="hidden" id="contributeGoalId">
+      <label for="contributeAmount">Số tiền đóng góp (VNĐ)</label><input id="contributeAmount" required type="number" min="1" step="1000" placeholder="500000">
+      <div class="modal-actions"><button type="button" class="secondary-btn" id="cancelContribute">Hủy</button><button type="submit" class="primary-btn">Xác nhận</button></div>
+    </form>
+  </dialog>
+  <div class="toast" id="toast" role="status"></div>
+  <script src="./app.js"></script>
+</body>
+</html>
