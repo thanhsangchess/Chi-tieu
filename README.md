@@ -1,4 +1,4 @@
-# Quản lý chi tiêu — Phiên bản 2.0
+# Quản lý chi tiêu — Phiên bản 3.0 Premium Reports
 
 Ứng dụng web quản lý thu chi cá nhân, thiết kế mobile-first, lưu cục bộ và hỗ trợ PWA/offline.
 
@@ -7,6 +7,8 @@
 - Thêm, sửa, xóa khoản thu và chi; danh mục mặc định.
 - Tìm kiếm giao dịch theo danh mục/ghi chú; lọc theo loại và khoảng ngày.
 - Thống kê cơ cấu chi tiêu, biểu đồ 7 ngày và so sánh với tháng trước.
+- Báo cáo theo tháng tùy chọn: tổng thu, tổng chi, dòng tiền ròng, số lượng giao dịch và tổng hợp theo ngày.
+- Xuất CSV riêng cho kỳ báo cáo, có dòng tổng hợp thu/chi/ròng.
 - Ngân sách tổng tháng và ngân sách riêng theo danh mục.
 - Mục tiêu tiết kiệm và ghi nhận đóng góp.
 - Xuất CSV; sao lưu/khôi phục toàn bộ dữ liệu JSON.
@@ -51,3 +53,11 @@
 ## Lộ trình tiếp theo
 - Giai đoạn 3: chuyển lớp lưu trữ sang IndexedDB, bổ sung nhập/xuất có kiểm soát, cải thiện cập nhật PWA và kiểm thử đa thiết bị.
 - Giai đoạn 4: hoàn thiện khả năng truy cập, hiệu năng, kiểm thử dữ liệu và triển khai chính thức.
+
+
+## Phiên bản 3.0 Premium Reports
+- Làm mới khu vực thống kê theo phong cách premium dashboard.
+- Chọn tháng lịch sử để xem KPI và bảng thu/chi/ròng theo ngày.
+- Xuất báo cáo CSV theo tháng đã chọn.
+- Giữ nguyên dữ liệu localStorage và các chức năng thu chi, ngân sách, tiết kiệm, sao lưu/khôi phục.
+- Cập nhật cache Service Worker để trình duyệt nhận bản giao diện mới.
