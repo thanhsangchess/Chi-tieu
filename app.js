@@ -55,24 +55,62 @@ function txRow(t){const sign=t.type==="income"?"+":"−";return `<div class="tra
 function bars(targetId,data){const el=document.getElementById(targetId);if(!el)return;const max=Math.max(1,...data.flatMap(d=>[d.income,d.expense]));el.innerHTML=data.map(d=>`<div class="bar-group"><div class="bar income" style="height:${Math.max(2,d.income/max*100)}%"></div><div class="bar expense" style="height:${Math.max(2,d.expense/max*100)}%"></div><span class="bar-label">${escapeHTML(d.label)}</span></div>`).join("")}
 function selectedReportMonth(){return document.getElementById("reportMonth")?.value||currentMonth()}
 function renderReport(){
- const key=selectedReportMonth(), list=state.transactions.filter(t=>monthKey(t.date)===key);
- const income=sum(list,"income"), expense=sum(list,"expense"), net=income-expense;
+ const key=selectedReportMonth();
+ if(!/^\\d{4}-\\d{2}$/.test(key))return;
+ const list=state.transactions.filter(t=>monthKey(t.date)===key);
+ const income=sum(list,"income"),expense=sum(list,"expense"),net=income-expense;
+ const date=new Date(key+"-01T12:00:00");
+ const label=new Intl.DateTimeFormat("vi-VN",{month:"long",year:"numeric"}).format(date);
  const set=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value};
+ set("statsMonth",label);set("reportPeriodCaption",label);
  set("reportIncome",money(income));set("reportExpense",money(expense));set("reportNet",money(net));
- set("reportIncomeCount",list.filter(t=>t.type==="income").length+" giao dịch thu");set("reportExpenseCount",list.filter(t=>t.type==="expense").length+" giao dịch chi");
- const netEl=document.getElementById("reportNet");if(netEl)netEl.className=net<0?"red":"green";
- const grouped={};for(const t of list){if(!grouped[t.date])grouped[t.date]={income:0,expense:0};grouped[t.date][t.type]+=t.amount}
- const rows=Object.entries(grouped).sort((a,b)=>b[0].localeCompare(a[0])).map(([date,v])=>{const d=new Date(date+"T12:00:00").toLocaleDateString("vi-VN");const n=v.income-v.expense;return "<tr><td>"+d+"</td><td class=\"green\">"+money(v.income)+"</td><td class=\"red\">"+money(v.expense)+"</td><td class=\""+(n<0?"red":"green")+"\">"+money(n)+"</td></tr>"}).join("");
+ set("reportIncomeCount",list.filter(t=>t.type==="income").length+" giao dịch thu");
+ set("reportExpenseCount",list.filter(t=>t.type==="expense").length+" giao dịch chi");
+ set("statsIncome",money(income));set("statsExpense",money(expense));
+ const netEl=document.getElementById("reportNet");if(netEl)netEl.className=net<0?"negative":"positive";
+ const grouped={};
+ for(const t of list){if(!grouped[t.date])grouped[t.date]={income:0,expense:0};grouped[t.date][t.type]+=t.amount}
+ const rows=Object.entries(grouped).sort((a,b)=>b[0].localeCompare(a[0])).map(([day,v])=>{
+   const dateLabel=new Date(day+"T12:00:00").toLocaleDateString("vi-VN");
+   const delta=v.income-v.expense;
+   return "<tr><td>"+dateLabel+"</td><td class='report-income-value'>"+money(v.income)+"</td><td class='report-expense-value'>"+money(v.expense)+"</td><td class='"+(delta<0?"report-expense-value":"report-income-value")+"'>"+money(delta)+"</td></tr>";
+ }).join("");
  const tbody=document.getElementById("reportDailyRows");if(tbody)tbody.innerHTML=rows;
  const empty=document.getElementById("reportEmpty");if(empty)empty.classList.toggle("hidden",list.length>0);
+
+ const prevDate=new Date(date.getFullYear(),date.getMonth()-1,1);
+ const prevKey=localDate(prevDate).slice(0,7);
+ const previous=state.transactions.filter(t=>monthKey(t.date)===prevKey);
+ const prevIncome=sum(previous,"income"),prevExpense=sum(previous,"expense");
+ const change=(current,old)=>old===0?(current===0?"0%":"Mới phát sinh"):`${current>=old?"+":""}${((current-old)/old*100).toFixed(1)}%`;
+ set("incomeChange",change(income,prevIncome));set("expenseChange",change(expense,prevExpense));
+ const incomeChange=document.getElementById("incomeChange"),expenseChange=document.getElementById("expenseChange");
+ if(incomeChange)incomeChange.className=income>=prevIncome?"positive":"negative";
+ if(expenseChange)expenseChange.className=expense<=prevExpense?"positive":"negative";
+
+ const byCategory={};
+ list.filter(t=>t.type==="expense").forEach(t=>byCategory[t.category]=(byCategory[t.category]||0)+t.amount);
+ const categoriesSorted=Object.entries(byCategory).sort((x,y)=>y[1]-x[1]);
+ const categoryEl=document.getElementById("categoryStats");
+ if(categoryEl)categoryEl.innerHTML=categoriesSorted.length?categoriesSorted.map(([name,value])=>{
+   const share=expense?value/expense*100:0;
+   return `<div class="category-stat"><div class="category-stat-head"><span>${icons[name]||"✦"} ${escapeHTML(name)}</span><strong>${money(value)} · ${share.toFixed(1)}%</strong></div><div class="progress-track"><div class="progress-fill" style="width:${share}%"></div></div></div>`;
+ }).join(""):'<div class="empty-hint">Chưa có khoản chi trong tháng này.</div>';
+
+ const year=date.getFullYear(),month=date.getMonth();
+ const daysInMonth=new Date(year,month+1,0).getDate();
+ const weeks=Array.from({length:Math.ceil(daysInMonth/7)},(_,i)=>({label:"Tuần "+(i+1),income:0,expense:0}));
+ list.forEach(t=>{const week=Math.floor((Number(t.date.slice(8,10))-1)/7);if(weeks[week])weeks[week][t.type]+=t.amount});
+ bars("statsChart",weeks);
 }
 function exportReportCSV(){
- const key=selectedReportMonth(), list=state.transactions.filter(t=>monthKey(t.date)===key).sort((a,b)=>a.date.localeCompare(b.date));
+ const key=selectedReportMonth();
+ const list=state.transactions.filter(t=>monthKey(t.date)===key).sort((a,b)=>a.date.localeCompare(b.date));
  const rows=[["Báo cáo tháng",key],[],["Ngày","Loại","Danh mục","Số tiền (VND)","Ghi chú"],...list.map(t=>[t.date,t.type==="income"?"Thu":"Chi",t.category,t.amount,t.note||""]),[],["Tổng thu",sum(list,"income")],["Tổng chi",sum(list,"expense")],["Dòng tiền ròng",sum(list,"income")-sum(list,"expense")]];
- const safe=v=>{let s=String(v??"");if(/^[=+\\-@]/.test(s))s="'"+s;return """+s.replace(/"/g,"""")+"""};
- const csv="﻿"+rows.map(r=>r.map(safe).join(",")).join("
-");
- downloadBlob(new Blob([csv],{type:"text/csv;charset=utf-8"}),"bao-cao-"+key+".csv");toast("Đã xuất báo cáo tháng "+key);
+ const safe=v=>{let s=String(v??"");if(/^[=+\\-@]/.test(s))s="'"+s;return "\"" + s.replace(/"/g,'""') + "\""};
+ const csv="\\uFEFF"+rows.map(row=>row.map(safe).join(",")).join("\\r\\n");
+ downloadBlob(new Blob([csv],{type:"text/csv;charset=utf-8"}),"bao-cao-"+key+".csv");
+ toast("Đã xuất báo cáo tháng "+key);
 }
 function render(){
  const m=monthTransactions(), income=sum(m,"income"), expense=sum(m,"expense");
@@ -100,6 +138,7 @@ function render(){
  const budgetSelect=document.getElementById("budgetCategory");if(budgetSelect){const old=budgetSelect.value;budgetSelect.innerHTML=categories.expense.map(c=>`<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join("");if(categories.expense.includes(old))budgetSelect.value=old;renderCategoryBudgets(byCat)}
  document.getElementById("savingsList").innerHTML=state.goals.map(g=>{const p=Math.min(100,g.saved/g.target*100);return `<article class="panel goal-card"><div class="goal-head"><strong>🎯 ${escapeHTML(g.name)}</strong><button data-goal-delete="${escapeHTML(g.id)}" aria-label="Xóa mục tiêu">×</button></div><div class="goal-amounts"><span>Đã tiết kiệm <strong>${money(g.saved)}</strong></span><span>${p.toFixed(1)}%</span></div><div class="progress-track"><div class="progress-fill" style="width:${p}%"></div></div><div class="goal-amounts"><span>Mục tiêu: ${money(g.target)}</span><span>Còn ${money(Math.max(0,g.target-g.saved))}</span></div><div class="goal-actions"><small>${p>=100?"Đã hoàn thành!":"Tiếp tục từng bước nhỏ"}</small><button data-contribute="${escapeHTML(g.id)}">＋ Đóng góp</button></div></article>`}).join("");
  document.getElementById("savingsEmpty").classList.toggle("hidden",state.goals.length>0);
+ renderReport();
 }
 function renderCategoryBudgets(byCat){const el=document.getElementById("categoryBudgetList");const entries=Object.entries(state.categoryBudgets||{});el.innerHTML=entries.length?entries.map(([name,limit])=>{const spent=byCat[name]||0,pct=spent/limit*100;return `<div class="category-stat"><div class="category-stat-head"><span>${icons[name]||"✦"} ${escapeHTML(name)}</span><strong>${money(spent)} / ${money(limit)}</strong></div><div class="progress-track"><div class="progress-fill ${pct>100?"over-budget":""}" style="width:${Math.min(100,pct)}%"></div></div><div class="budget-row-foot"><small>${pct>100?"Vượt "+money(spent-limit):"Còn "+money(limit-spent)}</small><button class="mini-btn" data-remove-budget="${escapeHTML(name)}">Xóa hạn mức</button></div></div>`}).join(""):'<div class="empty-hint">Chưa thiết lập ngân sách theo danh mục.</div>'}
 function openTransaction(type="expense",t=null){selectedType=t?.type||type;document.getElementById("transactionId").value=t?.id||"";document.getElementById("dialogTitle").textContent=t?"Chỉnh sửa giao dịch":"Thêm giao dịch";document.getElementById("amount").value=t?.amount||"";document.getElementById("date").value=t?.date||today();document.getElementById("note").value=t?.note||"";setType(selectedType,t?.category);document.getElementById("transactionDialog").showModal();setTimeout(()=>document.getElementById("amount").focus(),100)}
@@ -131,6 +170,5 @@ document.getElementById("todayLabel").textContent=new Intl.DateTimeFormat("vi-VN
 const reportMonthInput=document.getElementById("reportMonth");
 if(reportMonthInput){reportMonthInput.value=currentMonth();reportMonthInput.addEventListener("change",renderReport)}
 document.getElementById("exportReportBtn")?.addEventListener("click",exportReportCSV);
-renderReport();
 render();
 if("serviceWorker" in navigator&&location.protocol!=="file:"){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}))}
