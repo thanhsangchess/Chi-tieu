@@ -65,7 +65,17 @@
       </section>
 
       <section class="page" id="page-statistics">
-        <div class="page-title-row"><div><p class="eyebrow">PHÂN TÍCH</p><h1>Thống kê</h1></div><span class="month-chip" id="statsMonth"></span></div>
+        <div class="page-title-row"><div><p class="eyebrow">PHÂN TÍCH</p><h1>Thống kê & báo cáo</h1></div><span class="month-chip" id="statsMonth"></span></div>
+        <article class="panel report-controls">
+          <div class="report-control-head"><div><h3>Kỳ báo cáo</h3><p class="small-note">Chọn tháng để xem số liệu lịch sử.</p></div><button class="secondary-btn" id="exportReportBtn" type="button">Xuất báo cáo CSV</button></div>
+          <label for="reportMonth">Tháng báo cáo</label><input id="reportMonth" type="month">
+        </article>
+        <div class="report-kpis">
+          <article class="panel report-kpi"><span>Tổng thu</span><strong id="reportIncome">0 ₫</strong><small id="reportIncomeCount">0 giao dịch thu</small></article>
+          <article class="panel report-kpi"><span>Tổng chi</span><strong id="reportExpense">0 ₫</strong><small id="reportExpenseCount">0 giao dịch chi</small></article>
+          <article class="panel report-kpi"><span>Dòng tiền ròng</span><strong id="reportNet">0 ₫</strong><small>Thu nhập trừ chi tiêu</small></article>
+        </div>
+        <article class="panel stats-panel"><h3>Tóm tắt theo ngày</h3><div class="report-table-wrap"><table class="report-table"><thead><tr><th>Ngày</th><th>Thu</th><th>Chi</th><th>Ròng</th></tr></thead><tbody id="reportDailyRows"></tbody></table></div><p class="small-note" id="reportEmpty">Chưa có giao dịch trong kỳ đã chọn.</p></article>
         <div class="stat-cards">
           <article class="panel stat-card"><span>Thu nhập</span><strong class="green" id="statsIncome">0 ₫</strong></article>
           <article class="panel stat-card"><span>Chi tiêu</span><strong class="red" id="statsExpense">0 ₫</strong></article>
