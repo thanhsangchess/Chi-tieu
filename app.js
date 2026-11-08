@@ -107,7 +107,7 @@ function exportReportCSV(){
  const key=selectedReportMonth();
  const list=state.transactions.filter(t=>monthKey(t.date)===key).sort((a,b)=>a.date.localeCompare(b.date));
  const rows=[["Báo cáo tháng",key],[],["Ngày","Loại","Danh mục","Số tiền (VND)","Ghi chú"],...list.map(t=>[t.date,t.type==="income"?"Thu":"Chi",t.category,t.amount,t.note||""]),[],["Tổng thu",sum(list,"income")],["Tổng chi",sum(list,"expense")],["Dòng tiền ròng",sum(list,"income")-sum(list,"expense")]];
- const safe=v=>{let s=String(v??"");if(/^[=+\\-@]/.test(s))s="'"+s;return "\"" + s.replace(/"/g,'""') + "\""};
+ const safe=v=>{let s=String(v??"");if(/^[=+\-@]/.test(s))s="'"+s;return "\"" + s.replace(/"/g,'""') + "\""};
  const csv="\uFEFF"+rows.map(row=>row.map(safe).join(",")).join("\r\n");
  downloadBlob(new Blob([csv],{type:"text/csv;charset=utf-8"}),"bao-cao-"+key+".csv");
  toast("Đã xuất báo cáo tháng "+key);
