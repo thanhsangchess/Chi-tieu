@@ -100,7 +100,7 @@
         <form class="panel savings-form" id="savingsForm">
           <h3>Tạo mục tiêu mới</h3>
           <label for="goalName">Tên mục tiêu</label><input id="goalName" required maxlength="50" placeholder="Ví dụ: Mua laptop">
-          <label for="goalTarget">Số tiền muốn đạt (VNĐ)</label><input id="goalTarget" required type="number" min="1" step="1000" placeholder="15000000">
+          <label for="goalTarget">Số tiền muốn đạt (VNĐ)</label><input id="goalTarget" required type="number" min="1" step="1" placeholder="15000000">
           <button class="primary-btn full" type="submit">＋ Tạo mục tiêu</button>
         </form>
         <div id="savingsList" class="savings-list"></div>
@@ -128,7 +128,7 @@
       <div class="modal-head"><div><p class="eyebrow">GHI CHÉP NHANH</p><h2 id="dialogTitle">Thêm giao dịch</h2></div><button type="button" class="close-btn" id="closeDialog">×</button></div>
       <input type="hidden" id="transactionId">
       <div class="type-switch"><button type="button" class="type-btn active expense" data-type="expense">Khoản chi</button><button type="button" class="type-btn income" data-type="income">Khoản thu</button></div>
-      <label for="amount">Số tiền (VNĐ)</label><input id="amount" class="amount-input" required type="number" min="1" step="1000" placeholder="0">
+      <label for="amount">Số tiền (VNĐ)</label><input id="amount" class="amount-input" required type="number" min="1" step="1" placeholder="0">
       <label for="category">Danh mục</label><select id="category" required></select>
       <label for="date">Ngày giao dịch</label><input id="date" required type="date">
       <label for="note">Ghi chú <span class="optional">(không bắt buộc)</span></label><input id="note" maxlength="100" placeholder="Ví dụ: Ăn trưa cùng bạn">
@@ -140,7 +140,7 @@
     <form id="contributeForm" class="modal-content">
       <div class="modal-head"><div><p class="eyebrow">MỤC TIÊU TIẾT KIỆM</p><h2>Thêm khoản tiết kiệm</h2></div><button type="button" class="close-btn" id="closeContribute">×</button></div>
       <input type="hidden" id="contributeGoalId">
-      <label for="contributeAmount">Số tiền đóng góp (VNĐ)</label><input id="contributeAmount" required type="number" min="1" step="1000" placeholder="500000">
+      <label for="contributeAmount">Số tiền đóng góp (VNĐ)</label><input id="contributeAmount" required type="number" min="1" step="1" placeholder="500000">
       <div class="modal-actions"><button type="button" class="secondary-btn" id="cancelContribute">Hủy</button><button type="submit" class="primary-btn">Xác nhận</button></div>
     </form>
   </dialog>
